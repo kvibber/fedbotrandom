@@ -6,6 +6,10 @@
 # Call with the text filename as the parameter
 #      fedbotrandom.pl quotes.txt
 #
+# Optionally you can list a second file that will be processed as a queue for
+# new items, which will then be appended to the main list.
+#      fedbotrandom.pl quotes.txt newquotes.txt
+#
 # To run regularly, just schedule it as a cron job.
 # By Kelson Vibber, https://github.com/kvibber/fedbotrandom
 
@@ -19,20 +23,63 @@ use LWP;
 my $INSTANCE_HOST='botsin.space';
 my $API_ACCESS_TOKEN='your_access_token';
 
-# Read the list from the file given on the command line.
-my $listSource = $ARGV[0];
-open listFile, $listSource;
-my @list = <listFile>;
-close listFile;
-
-# Randomly select an element from the list
 my $content = "";
-my $loopsRemaining = 10;
-while($content eq "" && $loopsRemaining > 0) {
-	my $index = int(rand(scalar @list));
-	$content = $list[$index];
-	$content =~ s/^\s+|\s+$//g;
-	$loopsRemaining--;
+
+# Get the filenames
+my $listSource = $ARGV[0];
+my $newList = $ARGV[1];
+
+if (!defined $listSource) {
+	die "No source file specified.";
+}
+
+# If the new list exists, read the first item from it.
+if ( defined $newList && -f $newList) {
+	open newItems, "<", $newList;
+	my @list = <newItems>;
+	close newItems;
+	if (scalar @list > 0) {
+		# Get the first item with actual content.
+		while($content eq "" && scalar @list > 0) {
+			$content = shift(@list);
+			$content =~ s/^\s+|\s+$//g;
+		}
+		# If we got something, we now need to do two things:
+		# append it to the randomizer list and remove it from the queue.
+		if ($content ne "") {
+
+			open newItems, ">", $newList;
+			foreach my $item (@list) {
+				print newItems $item;
+			}
+			close newItems;
+
+			# Append it to the regular list.
+			open listFile,  ">>", $listSource;
+			print listFile "\n$content";
+			close listFile;
+		}
+	}
+
+}
+
+
+# If we didn't get anything from the new-item queue, pull randomly from the main list.
+if ($content eq "") {
+
+	# Read the list from the file.
+	open listFile,  "<", $listSource;
+	my @list = <listFile>;
+	close listFile;
+
+	# Randomly select an element from the list
+	my $loopsRemaining = 10;
+	while($content eq "" && $loopsRemaining > 0) {
+		my $index = int(rand(scalar @list));
+		$content = $list[$index];
+		$content =~ s/^\s+|\s+$//g;
+		$loopsRemaining--;
+	}
 }
 
 my $url = "https://$INSTANCE_HOST/api/v1/statuses?access_token=$API_ACCESS_TOKEN";
