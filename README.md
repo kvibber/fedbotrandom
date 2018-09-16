@@ -1,6 +1,7 @@
 # fedbotrandom
 Simple bot to post a random line from a text file to Mastodon.
-By Kelson Vibber. https://github.com/kvibber/fedbotrandom
+
+(c) 2018 Kelson Vibber. https://github.com/kvibber/fedbotrandom
 
 Give it an access token and a text file with items to post, and it will pick a random line from the file and post that line to your Mastodon account.
 
@@ -22,8 +23,12 @@ to quotes.txt for future posts:
      
 To run it regularly, you can schedule it as a cron job.
 
+## Why Perl and not something more modern? Why text files and not a database?
 
-TODO:
+To keep it simple. This way I can put the script and text files on any *nix system without worrying about which languages or databases are available, or having to install a runtime, and I can just run it from cron. No sense building a scheduler when one already exists, right?
+
+## TODO:
 I'm deliberately not making this complicated, but I will probably add:
 - multiline posts.
-- external config file.
+- external config file so it can be used to power more than one bot. (I don't want to put the API key in the command-line parameters.)
+- better error handling.
