@@ -68,23 +68,28 @@ if ( defined $newList && -f $newList) {
 if ($content eq "") {
 
 	# Read the list from the file.
-	open listFile,  "<", $listSource;
-	my @list = <listFile>;
-	close listFile;
+	if (open listFile,  "<", $listSource) {
+		my @list = <listFile>;
+		close listFile;
 
-	# Randomly select an element from the list
-	my $loopsRemaining = 10;
-	while($content eq "" && $loopsRemaining > 0) {
-		my $index = int(rand(scalar @list));
-		$content = $list[$index];
-		$content =~ s/^\s+|\s+$//g;
-		$loopsRemaining--;
+		# Randomly select an element from the list
+		my $loopsRemaining = 10;
+		while($content eq "" && $loopsRemaining > 0 && scalar @list > 0) {
+			my $index = int(rand(scalar @list));
+			$content = $list[$index];
+			$content =~ s/^\s+|\s+$//g;
+			$loopsRemaining--;
+		}
 	}
+}
+
+if ($content eq "") {
+	die ("No content found.");
 }
 
 my $url = "https://$INSTANCE_HOST/api/v1/statuses?access_token=$API_ACCESS_TOKEN";
 
-print "Posting $content to $INSTANCE_HOST\n";
+print "Posting [$content] to $INSTANCE_HOST\n";
 
 my $browser = LWP::UserAgent->new;
 my $response = $browser->post( $url,
@@ -93,3 +98,10 @@ my $response = $browser->post( $url,
      visibility => 'unlisted'
    ],
 );
+
+if ($response->is_success) {
+	print "Done!\n";
+}
+else {
+	print STDERR "Failed: " , $response->status_line, "\n";
+}
