@@ -14,11 +14,11 @@ Preferences/Development/Your Applications
 For example: https://botsin.space/settings/applications
 
 Call the script to post one random line from the text file:
-     fedbotrandom.pl quotes.txt
+`     fedbotrandom.pl quotes.txt`
 
 Or to post the first line from newquotes.txt, then move that line
 to quotes.txt for future posts:
-     fedbotrandom.pl quotes.txt newquotes.txt
+`     fedbotrandom.pl quotes.txt newquotes.txt`
      
 To run it regularly, you can schedule it as a cron job.
 
