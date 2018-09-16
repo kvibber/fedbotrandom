@@ -37,7 +37,7 @@ while($content eq "" && $loopsRemaining > 0) {
 
 my $url = "https://$INSTANCE_HOST/api/v1/statuses?access_token=$API_ACCESS_TOKEN";
 
-print "Going to post $content to $url";
+print "Posting $content to $INSTANCE_HOST\n";
 
 my $browser = LWP::UserAgent->new;
 my $response = $browser->post( $url,
