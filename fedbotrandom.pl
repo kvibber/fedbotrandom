@@ -1,4 +1,4 @@
-#!/bin/perl
+#!/usr/bin/perl
 # Super-simple bot that picks a random line from a text file and posts it to
 # an account on Mastodon.
 #
