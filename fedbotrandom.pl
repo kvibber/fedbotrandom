@@ -33,31 +33,22 @@ if (!defined $listSource) {
 	die "No source file specified.";
 }
 
+my @queue;
+my $fromQueue = 0;
+
 # If the new list exists, read the first item from it.
 if ( defined $newList && -f $newList) {
 	open newItems, "<", $newList;
-	my @list = <newItems>;
+	@queue = <newItems>;
 	close newItems;
-	if (scalar @list > 0) {
+	if (scalar @queue > 0) {
 		# Get the first item with actual content.
-		while($content eq "" && scalar @list > 0) {
-			$content = shift(@list);
+		while($content eq "" && scalar @queue > 0) {
+			$content = shift(@queue);
 			$content =~ s/^\s+|\s+$//g;
 		}
-		# If we got something, we now need to do two things:
-		# append it to the randomizer list and remove it from the queue.
 		if ($content ne "") {
-
-			open newItems, ">", $newList;
-			foreach my $item (@list) {
-				print newItems $item;
-			}
-			close newItems;
-
-			# Append it to the regular list.
-			open listFile,  ">>", $listSource;
-			print listFile "\n$content";
-			close listFile;
+			$fromQueue = 1;
 		}
 	}
 
@@ -100,6 +91,22 @@ my $response = $browser->post( $url,
 );
 
 if ($response->is_success) {
+
+	# If we got something, we now need to do two things:
+	# append it to the randomizer list and remove it from the queue.
+	if ($fromQueue) {
+		open newItems, ">", $newList;
+		foreach my $item (@queue) {
+			print newItems $item;
+		}
+		close newItems;
+
+		# Append it to the regular list.
+		open listFile,  ">>", $listSource;
+		print listFile "\n$content";
+		close listFile;
+	}
+
 	print "Done!\n";
 }
 else {
