@@ -1,7 +1,7 @@
 # fedbotrandom
 Simple bot to post a random line from a text file to a Mastodon instance.
 
-(c) 2018 Kelson Vibber. https://github.com/kvibber/fedbotrandom
+(c) 2018 Kelson Vibber. https://codeberg.org/kvibber/fedbotrandom
 
 Give it an access token and a text file with items to post, and it will pick a random line
 from the file and post that line to your Mastodon account. (I recommend https://botsin.space

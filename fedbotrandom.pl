@@ -11,7 +11,7 @@
 #      fedbotrandom.pl quotes.txt newquotes.txt
 #
 # To run regularly, just schedule it as a cron job.
-# By Kelson Vibber, https://github.com/kvibber/fedbotrandom
+# By Kelson Vibber, https://codeberg.org/kvibber/fedbotrandom
 
 use strict;
 use warnings;
