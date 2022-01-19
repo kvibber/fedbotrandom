@@ -2,6 +2,8 @@
 # Super-simple bot that picks a random line from a text file and posts it to
 # an account on Mastodon.
 #
+# Version 0.9 - 2022-01-09
+#
 # Configure by adding your instance hostname and access token here.
 # Call with the text filename as the parameter
 #      fedbotrandom.pl quotes.txt
@@ -18,7 +20,8 @@ use warnings;
 use LWP;
   
 # Configuration. Get your access token by creating an app in your Mastodon
-# preferences at Preferences/Development/Your Applications
+# preferences at Preferences/Development/Your Applications.
+# It needs at least write:statuses permission.
 # For example, https://botsin.space/settings/applications
 my $INSTANCE_HOST='botsin.space';
 my $API_ACCESS_TOKEN='your_access_token';
@@ -48,6 +51,18 @@ if ( defined $newList && -f $newList) {
 			$content =~ s/^\s+|\s+$//g;
 		}
 		if ($content ne "") {
+		
+			# If we found something, append following indented lines.
+			while (my $nextLine = shift(@queue)) {
+				if ($nextLine =~ /^\s/) {
+					$nextLine =~ s/^\s+|\s+$//g;
+					$content .= "\n" . $nextLine;
+				} else {
+					unshift (@queue, $nextLine);
+					last;
+				}
+			}
+		
 			$fromQueue = 1;
 		}
 	}
@@ -67,8 +82,27 @@ if ($content eq "") {
 		my $loopsRemaining = 10;
 		while($content eq "" && $loopsRemaining > 0 && scalar @list > 0) {
 			my $index = int(rand(scalar @list));
+			
+			# Don't start with an indented line
+			while ($list[$index] =~ /^\s/ && $index < scalar @list - 1) {
+				$index++;
+			}
+			
 			$content = $list[$index];
 			$content =~ s/^\s+|\s+$//g;
+			
+			# If we found something, append following indented lines.
+			while ($content ne "" && $index < scalar @list - 1) {
+				$index++;
+				my $nextLine = $list[$index];
+				if ($nextLine =~ /^\s/) {
+					$nextLine =~ s/^\s+|\s+$//g;
+					$content .= "\n" . $nextLine;
+				} else {
+					last;
+				}
+			}
+			
 			$loopsRemaining--;
 		}
 	}
@@ -92,7 +126,7 @@ my $response = $browser->post( $url,
 
 if ($response->is_success) {
 
-	# If we got something, we now need to do two things:
+	# If we got something from the new list, we now need to do two things:
 	# append it to the randomizer list and remove it from the queue.
 	if ($fromQueue) {
 		open newItems, ">", $newList;
@@ -101,8 +135,9 @@ if ($response->is_success) {
 		}
 		close newItems;
 
-		# Append it to the regular list.
+		# Append it to the regular list, with the indentations put back
 		open listFile,  ">>", $listSource;
+		$content =~ s/\n/\n  /g;
 		print listFile "\n$content";
 		close listFile;
 	}
