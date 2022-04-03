@@ -1,0 +1,8 @@
+# Configuration. Get your access token by creating an app in your Mastodon
+# preferences at Preferences/Development/Your Applications.
+# It needs at least write:statuses permission.
+# For example, https://botsin.space/settings/applications
+INSTANCE_HOST: botsin.space
+API_ACCESS_TOKEN: your_access_token
+LIST_FILE: quotes.txt
+NEW_ITEMS_FILE: newquotes.txt

@@ -29,23 +29,53 @@ post from the queue until it runs out, adding each item to the main list as it g
 If the second file is missing or empty, it will return to picking random items from
 the main list.
 
-For now, configuration is done in the script itself.
-Add the hostname of your instance (ex. botsin.space) and the access token,
+## Configuration
+
+You'll need an access token from the Mastodon instance you want to post to,
 which you can get by creating an app in your Mastodon preferences at
 Preferences/Development/Your Applications
+
 For example: https://botsin.space/settings/applications
 
 The application you create must have at LEAST write:statuses permission.
 
+Add your instance's hostname and the access token to fedbotrandom.config. If you
+want, you can also set the post source files in the config, or you can set them
+to the command line. You can also set up several config files so you can run more
+than one bot using the same script.
 
-Call the script to post one random line from the text file:
-`     fedbotrandom.pl quotes.txt`
+```
+fedbotrandom.config:
 
-Or to post the first line from newquotes.txt, then move that line
-to quotes.txt, making it available for future randomly-selected posts:
-`     fedbotrandom.pl quotes.txt newquotes.txt`
+INSTANCE_HOST: botsin.space (required)
+API_ACCESS_TOKEN: your_access_token (required)
+LIST_FILE: quotes.txt (optional)
+NEW_ITEMS_FILE: newquotes.txt (optional)
+```
+
+## Usage
+
+Call with no parameters and it will load everything from fedbotrandom.config,
+posting one random line from LIST_FILE.
+```
+     fedbotrandom.pl
+```
+Call with the name of an alternate configuration file.
+```
+     fedbotrandom.pl myalternate.config
+```
      
-To run it regularly, you can schedule it as a cron job.
+Call with a config file and an alternate source file for the random posts:
+```
+     fedbotrandom.pl myalternate.config quotes.txt
+```
+      
+Call with a config file, alternate list, and alternate new-item lists.
+```
+     fedbotrandom.pl myalternate.config quotes.txt newquotes.txt
+```
+
+To run it regularly, just schedule it as a cron job.
 
 ## Why Perl and not something more modern? Why text files and not a database?
 
@@ -53,7 +83,3 @@ To keep it simple. This way I can put the script and text files on any *nix
 system without worrying about which languages or databases are available,
 or having to install a runtime, and I can just run it from cron. No sense
 building a scheduler when one already exists, right?
-
-## TODO:
-I'm deliberately not making this complicated, but I will probably add:
-- external config file so it can be used to power more than one bot. (I don't want to put the API key in the command-line parameters.)

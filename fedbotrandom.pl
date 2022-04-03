@@ -1,16 +1,32 @@
 #!/usr/bin/perl
 # Super-simple bot that picks a random line from a text file and posts it to
-# an account on Mastodon.
+# an account on Mastodon. An optional second file can be used for new items
+# that you want to post as they are added.
 #
-# Version 0.9 - 2022-01-09
+# Version 1.0 - 2022-04-03
 #
-# Configure by adding your instance hostname and access token here.
-# Call with the text filename as the parameter
-#      fedbotrandom.pl quotes.txt
+# Configure by adding your instance hostname and access token in
+# fedbotrandom.config. You can set the source files in the config
+# or add them to the command line. You can also specify a different
+# config file so you can use the same copy of fedbotrandom.pl to
+# post to more than one account.
 #
-# Optionally you can list a second file that will be processed as a queue for
-# new items, which will then be appended to the main list.
-#      fedbotrandom.pl quotes.txt newquotes.txt
+# INSTANCE_HOST: botsin.space (required)
+# API_ACCESS_TOKEN: your_access_token (required)
+# LIST_FILE: quotes.txt (optional)
+# NEW_ITEMS_FILE: newquotes.txt (optional)
+#
+# Call with no parameters and it will load everything from fedbotrandom.config.
+#      fedbotrandom.pl
+#
+# Call with the name of a configuration file.
+#      fedbotrandom.pl myalternate.config
+#
+# Call with a config file and a list file.
+#      fedbotrandom.pl myalternate.config quotes.txt
+#
+# Call with a config file, list, and a source for new items.
+#      fedbotrandom.pl myalternate.config quotes.txt newquotes.txt
 #
 # To run regularly, just schedule it as a cron job.
 # By Kelson Vibber, https://codeberg.org/kvibber/fedbotrandom
@@ -18,30 +34,45 @@
 use strict;
 use warnings;
 use LWP;
-  
-# Configuration. Get your access token by creating an app in your Mastodon
-# preferences at Preferences/Development/Your Applications.
-# It needs at least write:statuses permission.
-# For example, https://botsin.space/settings/applications
-my $INSTANCE_HOST='botsin.space';
-my $API_ACCESS_TOKEN='your_access_token';
 
-my $content = "";
-
-# Get the filenames
-my $listSource = $ARGV[0];
-my $newList = $ARGV[1];
-
-if (!defined $listSource) {
-	die "No source file specified.";
+# Load config file
+my $configPath = $ARGV[0] || 'fedbot.config';
+my %CONFIG;
+open configFile, '<', $configPath || die "Cannot open configuration at $configPath";
+my @lines = <configFile>;
+close configFile;
+foreach my $configLine(@lines) {
+	if ($configLine =~ /^\s*([A-Za-z0-9_]+)\s*:\s*(.*)\s*$/) {
+		$CONFIG{$1}=$2;
+	}
+}
+# Override text files from command line
+if (defined $ARGV[1]) {
+	$CONFIG{'LIST_FILE'} = $ARGV[1];
+}
+if (defined $ARGV[2]) {
+	$CONFIG{'NEW_ITEMS_FILE'} = $ARGV[2];
 }
 
+# Required config
+if (!exists $CONFIG{'INSTANCE_HOST'}) {
+	die "Please set INSTANCE_HOST to the target Mastodon instance, for example botsin.space";
+}
+if (!exists $CONFIG{'API_ACCESS_TOKEN'}) {
+	die "Please set API_ACCESS_TOKEN in the config file.";
+}
+if (!exists $CONFIG{'LIST_FILE'}) {
+	die "You can set LIST_FILE in the config or add the source filename on the command line.";
+}
+
+##################################################
+my $content = "";
 my @queue;
 my $fromQueue = 0;
 
 # If the new list exists, read the first item from it.
-if ( defined $newList && -f $newList) {
-	open newItems, "<", $newList;
+if ( exists $CONFIG{'NEW_ITEMS_FILE'} && -f $CONFIG{'NEW_ITEMS_FILE'} ) {
+	open newItems, "<", $CONFIG{'NEW_ITEMS_FILE'} ;
 	@queue = <newItems>;
 	close newItems;
 	if (scalar @queue > 0) {
@@ -74,7 +105,7 @@ if ( defined $newList && -f $newList) {
 if ($content eq "") {
 
 	# Read the list from the file.
-	if (open listFile,  "<", $listSource) {
+	if (open listFile,  "<", $CONFIG{'LIST_FILE'}) {
 		my @list = <listFile>;
 		close listFile;
 
@@ -112,9 +143,9 @@ if ($content eq "") {
 	die ("No content found.");
 }
 
-my $url = "https://$INSTANCE_HOST/api/v1/statuses?access_token=$API_ACCESS_TOKEN";
+my $url = "https://${CONFIG{'INSTANCE_HOST'}}/api/v1/statuses?access_token=${CONFIG{'API_ACCESS_TOKEN'}}";
 
-print "Posting [$content] to $INSTANCE_HOST\n";
+print "Posting [$content] to $CONFIG{'INSTANCE_HOST'}\n";
 
 my $browser = LWP::UserAgent->new;
 my $response = $browser->post( $url,
@@ -129,14 +160,14 @@ if ($response->is_success) {
 	# If we got something from the new list, we now need to do two things:
 	# append it to the randomizer list and remove it from the queue.
 	if ($fromQueue) {
-		open newItems, ">", $newList;
+		open newItems, ">", $CONFIG{'NEW_ITEMS_FILE'} ;
 		foreach my $item (@queue) {
 			print newItems $item;
 		}
 		close newItems;
 
 		# Append it to the regular list, with the indentations put back
-		open listFile,  ">>", $listSource;
+		open listFile,  ">>", $CONFIG{'LIST_FILE'};
 		$content =~ s/\n/\n  /g;
 		print listFile "\n$content";
 		close listFile;
