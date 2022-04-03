@@ -1,7 +1,7 @@
 # fedbotrandom.pl Change Log
 
 ## 1.0 - 2022-04-03
-* Moved configuration to a separate file. Now one script can run multiple bots.
+* BREAKING CHANGE: Moved configuration to a separate file. Now one script can run multiple bots.
 
 ## 0.9 - 2022-01-19
 * Explicitly chose MIT license and moved to Codeberg.
