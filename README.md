@@ -1,7 +1,12 @@
 # fedbotrandom
 Simple bot to post a random line from a text file to a Mastodon instance.
+(c) 2018-2022 Kelson Vibber.
 
-(c) 2018-2022 Kelson Vibber. https://codeberg.org/kvibber/fedbotrandom
+## THIS PROJECT HAS MOVED
+
+Current versions can be found [on **Codeberg** at **kvibber/fedbotrandom**](https://codeberg.org/kvibber/fedbotrandom)
+
+## What it does
 
 Give it an access token and a text file with items to post, and it will pick a random line
 from the file and post that line to your Mastodon account. (I recommend https://botsin.space
@@ -83,3 +88,7 @@ To keep it simple. This way I can put the script and text files on any *nix
 system without worrying about which languages or databases are available,
 or having to install a runtime, and I can just run it from cron. No sense
 building a scheduler when one already exists, right?
+
+## AGAIN: THIS PROJECT HAS MOVED
+
+Current versions can be found [on **Codeberg** at **kvibber/fedbotrandom**](https://codeberg.org/kvibber/fedbotrandom)
